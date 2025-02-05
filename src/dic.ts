@@ -1,5 +1,3 @@
-import * as path from "jsr:@std/path";
-
 function parseDic(data: string) {
 	const x: { t: string; k: string; w: number }[] = [];
 	const l = data
@@ -20,11 +18,9 @@ function parseDic(data: string) {
 	return x;
 }
 
-function loadDic(paths: string[]) {
+function loadDic(datas: string[]) {
 	const dicMap = new Map<string, string[]>();
-	for (const p of paths) {
-		const dirName = path.dirname(path.fromFileUrl(Deno.mainModule));
-		const data = Deno.readTextFileSync(path.join(dirName, p));
+	for (const data of datas) {
 		const parse = parseDic(data);
 		for (const x of parse) {
 			const v = dicMap.get(x.k);

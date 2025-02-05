@@ -1,7 +1,7 @@
-import { init } from "../src/main.ts";
+import { xinit } from "./load.ts";
 import { code2sen } from "../src/sen.ts";
 
-const { allMap } = init();
+const { allMap } = xinit();
 
 Deno.test({
 	name: "词2句子",

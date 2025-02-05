@@ -1,7 +1,8 @@
-import { inputTrans, init } from "../src/main.ts";
+import { xinit } from "./load.ts";
+import { inputTrans } from "../src/main.ts";
 import { assertEquals } from "jsr:@std/assert";
 
-init();
+xinit();
 
 Deno.test({
 	name: "基本",

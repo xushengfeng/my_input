@@ -6,9 +6,12 @@ let baseMap: ReturnType<typeof loadDic>;
 let groupMap: ReturnType<typeof loadDic>;
 const allMap: ReturnType<typeof loadDic> = new Map();
 
-function init() {
-	baseMap = loadDic(["../dic/8105.dict.yaml"]);
-	groupMap = loadDic(["../dic/base.dict.yaml"]);
+function init(op: {
+	baseDic: string[];
+	groupDic?: string[];
+}) {
+	baseMap = loadDic(op.baseDic);
+	groupMap = loadDic(op.groupDic ?? []);
 	// console.log(baseMap, groupMap);
 	for (const [k, v] of baseMap.entries()) allMap.set(k, v);
 	for (const [k, v] of groupMap.entries()) allMap.set(k, v);

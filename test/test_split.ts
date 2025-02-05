@@ -1,8 +1,8 @@
-import { init } from "../src/main.ts";
+import { xinit } from "./load.ts";
 import { split } from "../src/split.ts";
 import { assertEquals } from "jsr:@std/assert";
 
-const { baseMap } = init();
+const { baseMap } = xinit();
 const someKeys = Array.from(baseMap.keys() ?? []);
 
 Deno.test({
