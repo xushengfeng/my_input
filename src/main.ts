@@ -25,7 +25,7 @@ function main(keys: string) {
 	// todo模糊
 	// todo声母简拼
 	const keycodes = [split(keys, someKeys)];
-	console.log(keycodes);
+	// console.log(keycodes);
 
 	// codes -> words
 	const fl: string[] = [];
