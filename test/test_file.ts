@@ -60,7 +60,7 @@ for await (const dirEntry of walk(path.join(dirName, "txt"))) {
 		const zi: ReturnType<typeof splitTxt> = { count: 0, ideal: 0, length: 0 };
 		const ci: ReturnType<typeof splitTxt> = { count: 0, ideal: 0, length: 0 };
 		for (let i = 0; i < txt.length; i += c) {
-			console.log(i / txt.length);
+			Deno.stdout.writeSync(new TextEncoder().encode(`\r${i / txt.length}`));
 			const x = testFile(txt.slice(i, i + c));
 			for (const i in x.zi) {
 				// @ts-ignore:
@@ -71,6 +71,7 @@ for await (const dirEntry of walk(path.join(dirName, "txt"))) {
 				ci[i] += x.ci[i];
 			}
 		}
+		console.log("\n");
 		console.table([
 			[dirEntry.name, "字", "词"],
 			[
