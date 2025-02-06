@@ -13,6 +13,8 @@ function code2sen(code: string[], map: Map<string, string[]>) {
 			}
 		}
 	}
+
+	if (map.has(code.join(" "))) return map.get(code.join(" ")) as string[];
 	s(code);
 	return l.slice(0, 1);
 }
