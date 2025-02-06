@@ -30,10 +30,13 @@ Deno.test({
 	fn() {
 		const s = code2sen(
 			[
-				{ code: "ni", start: 0, end: 2 },
-				{ code: "hao", start: 2, end: 5 },
-				{ code: "shi", start: 5, end: 8 },
-				{ code: "jie", start: 8, end: 11 },
+				{ code: "zhe", start: 0, end: 3 },
+				{ code: "shi", start: 3, end: 6 },
+				{ code: "wo", start: 6, end: 8 },
+				{ code: "de", start: 8, end: 10 },
+				{ code: "shu", start: 10, end: 13 },
+				{ code: "ru", start: 13, end: 15 },
+				{ code: "fa", start: 15, end: 17 },
 			],
 			allMap,
 		);
