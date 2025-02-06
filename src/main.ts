@@ -1,6 +1,6 @@
 import { loadDic } from "./dic.ts";
 import { split } from "./split.ts";
-import { code2sen } from "./sen.ts";
+import { code2sen, type SenItem } from "./sen.ts";
 
 let baseMap: ReturnType<typeof loadDic>;
 let groupMap: ReturnType<typeof loadDic>;
@@ -57,13 +57,13 @@ function main(keys: string) {
 	// console.log(codes);
 
 	// codes -> words
-	const fl: string[] = [];
+	const fl: SenItem[] = [];
 	for (const i of codes) {
 		fl.push(...code2sen(i, allMap));
 	}
 
 	// words -> words
-	return fl;
+	return { all: fl, pureText: fl.map((i) => i.txt) };
 }
 
 export { main as inputTrans, init };

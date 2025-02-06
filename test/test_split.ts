@@ -10,12 +10,17 @@ const pyj = ",";
 Deno.test({
 	name: "输入键转拼音",
 	fn() {
-		assertEquals(
-			split("nihaoshijie", { alCodes: someKeys })
-				.map((i) => i.join(pyj))
-				.includes(["ni", "hao", "shi", "jie"].join(pyj)),
-			true,
-		);
+		for (const i of [["ni", "hao", "shi", "jie"]]) {
+			const j = i.join("");
+			const jj = i.join(pyj);
+			const x = split(j, { alCodes: someKeys });
+			const t = x.find((i) => i.map((i) => i.code).join(pyj) === jj);
+			assertEquals(Boolean(t), true);
+			if (!t) return;
+			for (const [n, v] of t.entries()) {
+				assertEquals(i[n], j.slice(v.start, v.end));
+			}
+		}
 	},
 });
 
@@ -26,7 +31,7 @@ Deno.test({
 		console.log(l);
 		assertEquals(
 			l
-				.map((i) => i.join(pyj))
+				.map((i) => i.map((i) => i.code).join(pyj))
 				.includes(["ni", "hao", "shi", "jie", "shang"].join(pyj)),
 			true,
 		);

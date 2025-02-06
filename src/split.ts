@@ -1,3 +1,5 @@
+type CodeItem = { code: string; start: number; end: number };
+
 function main(
 	keys: string,
 	op: {
@@ -7,25 +9,25 @@ function main(
 		codeExt?: Record<string, string>;
 	},
 ) {
-	const l: string[] = [];
+	const l: CodeItem[] = [];
 	const ak = op.alCodes
 		.filter((i) => keys.includes(i))
 		.toSorted((a, b) => b.length - a.length);
 
-	function s(c: string) {
+	function s(c: string, start: number) {
 		if (c.length === 0) return;
 		for (const i of ak) {
 			if (c.startsWith(i)) {
-				l.push(i);
-				s(c.slice(i.length));
+				l.push({ code: i, start, end: start + i.length });
+				s(c.slice(i.length), start + i.length);
 				return;
 			}
 		}
 	}
 
-	s(keys);
+	s(keys, 0);
 	const f = op.codeExt ? extCode(l, op.codeExt) : [l];
-	const ff = f.filter((i) => i.every((x) => op.alCodes.includes(x)));
+	const ff = f.filter((i) => i.every((x) => op.alCodes.includes(x.code)));
 	return ff;
 }
 function generateCombinations<T>(arr: T[]) {
@@ -46,13 +48,13 @@ function generateCombinations<T>(arr: T[]) {
 
 	return result;
 }
-function extCode(code: string[], codeExt: Record<string, string>) {
-	const f: string[][] = [];
+function extCode(code: CodeItem[], codeExt: Record<string, string>) {
+	const f: CodeItem[][] = [];
 	const k: [number, string][] = [];
 	all: for (const [n, i] of code.entries()) {
 		for (const r in codeExt) {
 			const re = new RegExp(r);
-			if (re.test(i)) {
+			if (re.test(i.code)) {
 				if (k.length < 3) k.push([n, r]);
 				else break all;
 			}
@@ -62,11 +64,11 @@ function extCode(code: string[], codeExt: Record<string, string>) {
 	for (const _i of x) {
 		const l = structuredClone(code);
 		for (const i of _i) {
-			l[i[0]] = l[i[0]].replace(new RegExp(i[1]), codeExt[i[1]]);
+			l[i[0]].code = l[i[0]].code.replace(new RegExp(i[1]), codeExt[i[1]]);
 		}
 		f.push(l);
 	}
 	return f;
 }
 
-export { main as split };
+export { main as split, type CodeItem };

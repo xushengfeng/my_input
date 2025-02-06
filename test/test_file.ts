@@ -26,7 +26,7 @@ function splitTxt(
 		let r: string[] = [];
 		let pyLen = p.length;
 		for (let j = op?.firstBreak ? 0 : p.length; j <= p.length; j++) {
-			const _r = inputTrans(p.slice(0, j));
+			const _r = inputTrans(p.slice(0, j)).pureText;
 			if (_r.at(0) === i || j === p.length) {
 				r = _r;
 				pyLen = j;

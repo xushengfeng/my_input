@@ -7,7 +7,7 @@ xinit();
 Deno.test({
 	name: "基本",
 	fn() {
-		assertEquals(inputTrans("nihao").includes("你好"), true);
+		assertEquals(inputTrans("nihao").pureText.includes("你好"), true);
 	},
 });
 
@@ -16,6 +16,6 @@ Deno.test({
 	fn() {
 		const l = inputTrans("nihaoshijie");
 		console.log(l);
-		assertEquals(l.includes("你好世界"), true);
+		assertEquals(l.pureText.includes("你好世界"), true);
 	},
 });
