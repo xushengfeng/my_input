@@ -59,7 +59,7 @@ function main(keys: string) {
 	// codes -> words
 	const fl: SenItem[] = [];
 	for (const i of codes) {
-		fl.push(...code2sen(i, allMap));
+		fl.push(...code2sen(i, allMap)); // todo 这里交错了 去重
 	}
 
 	// words -> words
