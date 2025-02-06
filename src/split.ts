@@ -49,11 +49,12 @@ function generateCombinations<T>(arr: T[]) {
 function extCode(code: string[], codeExt: Record<string, string>) {
 	const f: string[][] = [];
 	const k: [number, string][] = [];
-	for (const [n, i] of code.entries()) {
+	all: for (const [n, i] of code.entries()) {
 		for (const r in codeExt) {
 			const re = new RegExp(r);
 			if (re.test(i)) {
-				if (2 ** k.length < 100) k.push([n, r]);
+				if (k.length < 3) k.push([n, r]);
+				else break all;
 			}
 		}
 	}

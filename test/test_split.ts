@@ -32,3 +32,14 @@ Deno.test({
 		);
 	},
 });
+
+Deno.test({
+	name: "模糊音数量",
+	fn() {
+		const l = split("shanshanshanshanshanshanshan", {
+			alCodes: someKeys,
+			codeExt,
+		});
+		console.log(l, l.length);
+	},
+});
