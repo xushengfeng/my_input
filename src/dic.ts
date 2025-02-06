@@ -12,20 +12,20 @@ function parseDic(data: string) {
 		let k = " ";
 		if (Number.isNaN(Number(nextK))) k = nextK || " "; // todo 自动注音
 		const lastK = xl.at(-1);
-		const w = Number(lastK) || 0;
+		const w = Number(lastK) || 100;
 		x.push({ w, k, t });
 	}
 	return x;
 }
 
 function loadDic(datas: string[]) {
-	const dicMap = new Map<string, string[]>();
+	const dicMap = new Map<string, { t: string; w: number }[]>();
 	for (const data of datas) {
 		const parse = parseDic(data);
 		for (const x of parse) {
 			const v = dicMap.get(x.k);
-			if (v) v.push(x.t);
-			else dicMap.set(x.k, [x.t]);
+			if (v) v.push({ t: x.t, w: x.w });
+			else dicMap.set(x.k, [{ t: x.t, w: x.w }]);
 		}
 	}
 	return dicMap;

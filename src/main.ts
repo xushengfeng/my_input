@@ -4,7 +4,7 @@ import { code2sen } from "./sen.ts";
 
 let baseMap: ReturnType<typeof loadDic>;
 let groupMap: ReturnType<typeof loadDic>;
-const allMap: ReturnType<typeof loadDic> = new Map();
+const allMap = new Map<string, string[]>();
 
 function init(op: {
 	baseDic: string[];
@@ -13,8 +13,16 @@ function init(op: {
 	baseMap = loadDic(op.baseDic);
 	groupMap = loadDic(op.groupDic ?? []);
 	// console.log(baseMap, groupMap);
-	for (const [k, v] of baseMap.entries()) allMap.set(k, v);
-	for (const [k, v] of groupMap.entries()) allMap.set(k, v);
+	for (const [k, v] of baseMap.entries())
+		allMap.set(
+			k,
+			v.toSorted((a, b) => b.w - a.w).map((i) => i.t),
+		);
+	for (const [k, v] of groupMap.entries())
+		allMap.set(
+			k,
+			v.toSorted((a, b) => b.w - a.w).map((i) => i.t),
+		);
 	return { baseMap, groupMap, allMap };
 }
 
