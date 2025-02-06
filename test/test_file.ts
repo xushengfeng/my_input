@@ -49,10 +49,12 @@ function testFile(txt: string) {
 	return { zi, ci };
 }
 
+const onlyFile = Deno.args.at(0);
 const dirName = path.dirname(path.fromFileUrl(Deno.mainModule));
 for await (const dirEntry of walk(path.join(dirName, "txt"))) {
 	if (dirEntry.isFile) {
 		console.log(dirEntry.name);
+		if (onlyFile) if (onlyFile !== dirEntry.name) continue;
 		const txt = Deno.readTextFileSync(dirEntry.path);
 		const c = 10_0000;
 		const zi: ReturnType<typeof splitTxt> = { count: 0, ideal: 0, length: 0 };
