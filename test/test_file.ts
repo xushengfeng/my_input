@@ -10,7 +10,12 @@ const segW = new Intl.Segmenter("zh-HANS", { granularity: "word" });
 
 xinit();
 
-function splitTxt(txt: string, fn: (t: string) => string[], py: string[]) {
+function splitTxt(
+	txt: string,
+	fn: (t: string) => string[],
+	py: string[],
+	op?: { firstBreak: boolean },
+) {
 	const l = fn(txt);
 	let count = 0;
 	let ideal = 0;
@@ -18,14 +23,24 @@ function splitTxt(txt: string, fn: (t: string) => string[], py: string[]) {
 	for (const i of l) {
 		const nextN = n + i.length;
 		const p = py.slice(n, nextN).join("");
-		count += p.length;
-		ideal += p.length + 1;
-		const r = inputTrans(p); // todo 这里假设打完全部，但可以提前结束
+		let r: string[] = [];
+		let pyLen = p.length;
+		for (let j = op?.firstBreak ? 0 : p.length; j <= p.length; j++) {
+			const _r = inputTrans(p.slice(0, j));
+			if (_r.at(0) === i || j === p.length) {
+				r = _r;
+				pyLen = j;
+				break;
+			}
+		}
+		count += pyLen;
+		ideal += p.length;
 		const dis = r.indexOf(i);
 		if (dis === -1) {
 			if (p) count += i.length * 8; // uincode
 		} else count += dis; // 假设只有一个候选，需要不断翻页，或者假设对比字的精力与击键相同
 		count += 1;
+		ideal += 1;
 
 		n = nextN;
 	}
@@ -46,7 +61,17 @@ function testFile(txt: string) {
 		(t) => Array.from(segW.segment(t)).map((i) => i.segment),
 		py,
 	);
-	return { zi, ci };
+	const cib = splitTxt(
+		txt,
+		(t) => Array.from(segW.segment(t)).map((i) => i.segment),
+		py,
+		{ firstBreak: true },
+	);
+	return { zi, ci, cib };
+}
+
+function item(zi: ReturnType<typeof splitTxt>) {
+	return `${zi.count} ${(zi.count - zi.ideal) / zi.length}`;
 }
 
 const onlyFile = Deno.args.at(0);
@@ -56,11 +81,13 @@ for await (const dirEntry of walk(path.join(dirName, "txt"))) {
 		console.log(dirEntry.name);
 		if (onlyFile) if (onlyFile !== dirEntry.name) continue;
 		const txt = Deno.readTextFileSync(dirEntry.path);
-		const c = 10_0000;
+		const c = 5000;
+		const max = Math.min(100_0000, txt.length);
 		const zi: ReturnType<typeof splitTxt> = { count: 0, ideal: 0, length: 0 };
 		const ci: ReturnType<typeof splitTxt> = { count: 0, ideal: 0, length: 0 };
-		for (let i = 0; i < txt.length; i += c) {
-			Deno.stdout.writeSync(new TextEncoder().encode(`\r${i / txt.length}`));
+		const cib: ReturnType<typeof splitTxt> = { count: 0, ideal: 0, length: 0 };
+		for (let i = 0; i < max; i += c) {
+			Deno.stdout.writeSync(new TextEncoder().encode(`\r${i / max}`));
 			const x = testFile(txt.slice(i, i + c));
 			for (const i in x.zi) {
 				// @ts-ignore:
@@ -70,15 +97,15 @@ for await (const dirEntry of walk(path.join(dirName, "txt"))) {
 				// @ts-ignore:
 				ci[i] += x.ci[i];
 			}
+			for (const i in x.cib) {
+				// @ts-ignore:
+				cib[i] += x.cib[i];
+			}
 		}
 		console.log("\n");
 		console.table([
-			[dirEntry.name, "字", "词"],
-			[
-				txt.length,
-				`${zi.count} ${zi.count / zi.ideal} ${(zi.count - zi.ideal) / zi.length}`,
-				`${ci.count} ${ci.count / ci.ideal} ${(ci.count - ci.ideal) / ci.length}`,
-			],
+			[dirEntry.name, "字", "词", "词（提前返回）"],
+			[max, item(zi), item(ci), item(cib)],
 		]);
 	}
 }
