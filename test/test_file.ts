@@ -2,6 +2,9 @@ import { xinit } from "./load.ts";
 import { inputTrans } from "../src/main.ts";
 import { pinyin } from "npm:pinyin-pro";
 
+import * as path from "jsr:@std/path";
+import { walk } from "jsr:@std/fs/walk";
+
 const segG = new Intl.Segmenter("zh-HANS", { granularity: "grapheme" });
 const segW = new Intl.Segmenter("zh-HANS", { granularity: "word" });
 
@@ -26,12 +29,53 @@ function splitTxt(txt: string, fn: (t: string) => string[], py: string[]) {
 
 		n = nextN;
 	}
-	console.log(txt.length, count, ideal);
-	return { count, ideal };
+	return { count, ideal, length: l.length };
 }
 
-for (const i of ["你好,世界"]) {
-	const py = pinyin(i, { toneType: "none", type: "all" }).map((i) => i.pinyin);
-	splitTxt(i, (t) => Array.from(segG.segment(t)).map((i) => i.segment), py);
-	splitTxt(i, (t) => Array.from(segW.segment(t)).map((i) => i.segment), py);
+function testFile(txt: string) {
+	const py = pinyin(txt, { toneType: "none", type: "all" }).map(
+		(i) => i.pinyin,
+	);
+	const zi = splitTxt(
+		txt,
+		(t) => Array.from(segG.segment(t)).map((i) => i.segment),
+		py,
+	);
+	const ci = splitTxt(
+		txt,
+		(t) => Array.from(segW.segment(t)).map((i) => i.segment),
+		py,
+	);
+	return { zi, ci };
+}
+
+const dirName = path.dirname(path.fromFileUrl(Deno.mainModule));
+for await (const dirEntry of walk(path.join(dirName, "txt"))) {
+	if (dirEntry.isFile) {
+		console.log(dirEntry.name);
+		const txt = Deno.readTextFileSync(dirEntry.path);
+		const c = 10_0000;
+		const zi: ReturnType<typeof splitTxt> = { count: 0, ideal: 0, length: 0 };
+		const ci: ReturnType<typeof splitTxt> = { count: 0, ideal: 0, length: 0 };
+		for (let i = 0; i < txt.length; i += c) {
+			console.log(i / txt.length);
+			const x = testFile(txt.slice(i, i + c));
+			for (const i in x.zi) {
+				// @ts-ignore:
+				zi[i] += x.zi[i];
+			}
+			for (const i in x.ci) {
+				// @ts-ignore:
+				ci[i] += x.ci[i];
+			}
+		}
+		console.table([
+			[dirEntry.name, "字", "词"],
+			[
+				txt.length,
+				`${zi.count} ${zi.count / zi.ideal} ${(zi.count - zi.ideal) / zi.length}`,
+				`${ci.count} ${ci.count / ci.ideal} ${(ci.count - ci.ideal) / ci.length}`,
+			],
+		]);
+	}
 }
