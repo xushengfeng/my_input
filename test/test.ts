@@ -19,3 +19,14 @@ Deno.test({
 		assertEquals(l.pureText.includes("你好世界"), true);
 	},
 });
+
+Deno.test({
+	name: "输入过程",
+	fn() {
+		const p = "nihaoshijie";
+		for (let i = 0; i < p.length; i++) {
+			const l = inputTrans(p.slice(0, i + 1));
+			console.log(p.slice(0, i + 1), l.pureText);
+		}
+	},
+});
