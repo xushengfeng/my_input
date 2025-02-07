@@ -13,10 +13,15 @@ xinit();
 
 yhXc; // 用于调试
 
-function splitTxt(l: string[], py: string[], op?: { firstBreak: boolean }) {
+function splitTxt(
+	l: string[],
+	py: string[],
+	op?: { firstBreak?: boolean; devB?: boolean },
+) {
 	let count = 0;
 	let ideal = 0;
 	let n = 0;
+	let senL: { s: string; r: string[]; i: number }[] = [];
 
 	function select(
 		r: SenItem[],
@@ -33,6 +38,7 @@ function splitTxt(l: string[], py: string[], op?: { firstBreak: boolean }) {
 				return;
 			}
 			s(fi);
+			senL.push({ s: txt, r: r.map((i) => i.txt), i: fi });
 			count += 1 + fi;
 			const npy = py.slice(f.end);
 			const nout = inputTrans(npy);
@@ -67,6 +73,8 @@ function splitTxt(l: string[], py: string[], op?: { firstBreak: boolean }) {
 		}
 		count += pyLen;
 		ideal += p.length;
+
+		senL = [];
 
 		select(r, i, p, s);
 
@@ -126,6 +134,7 @@ function testFile(txt: string) {
 		s,
 		py,
 		// { firstBreak: true },
+		{ devB: true },
 	);
 	return { zi, ci, cib, jz };
 }
