@@ -43,3 +43,18 @@ Deno.test({
 		console.log(s);
 	},
 });
+
+Deno.test({
+	name: "优先词",
+	fn() {
+		const s = code2sen(
+			[{ code: "zhe", start: 0, end: 3 }],
+			allMap,
+			new Map([
+				["辄", 1],
+				["鹧", 2],
+			]),
+		);
+		console.log(s);
+	},
+});

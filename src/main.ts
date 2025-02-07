@@ -8,6 +8,11 @@ const allMap = new Map<string, string[]>();
 let keyMapCode: Record<string, string> = {};
 let codeExt: Record<string, string> = {};
 
+const yhXc = new Map<string, number>();
+const yhXcGx = new Map<string, Set<string>>();
+let lastTxt = "";
+let wordFeqI = 0;
+
 function init(op: {
 	baseDic: string[];
 	groupDic?: string[];
@@ -59,11 +64,42 @@ function main(keys: string) {
 	// codes -> words
 	const fl: SenItem[] = [];
 	for (const i of codes) {
-		fl.push(...code2sen(i, allMap)); // todo 这里交错了 去重
+		fl.push(...code2sen(i, allMap, yhXc)); // todo 这里交错了 去重
 	}
 
 	// words -> words
-	return { all: fl, pureText: fl.map((i) => i.txt) };
+	return {
+		all: fl,
+		pureText: fl.map((i) => i.txt),
+		select(i: number) {
+			const data = fl.at(i);
+			if (!data) return;
+			yhXc.delete(data.txt);
+			yhXc.set(data.txt, wordFeqI);
+			wordFeqI++;
+			if (lastTxt) {
+				const l = yhXcGx.get(lastTxt);
+				if (l) l.add(data.txt);
+				else yhXcGx.set(lastTxt, new Set([data.txt]));
+			}
+			lastTxt = data.txt;
+			return data;
+		},
+	};
 }
 
-export { main as inputTrans, init };
+function exportYhData() {
+	const obj: Record<string, string[]> = {};
+	for (const [k, v] of yhXcGx) {
+		obj[k] = Array.from(v);
+	}
+	return { s: Array.from(yhXc), c: obj };
+}
+
+function cleanYhData() {
+	yhXc.clear();
+	yhXcGx.clear();
+	wordFeqI = 0;
+}
+
+export { main as inputTrans, init, exportYhData, cleanYhData };

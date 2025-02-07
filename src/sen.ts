@@ -2,11 +2,27 @@ import type { CodeItem } from "./split.ts";
 
 type SenItem = { txt: string; start: number; end: number };
 
-function code2sen(code: CodeItem[], map: Map<string, string[]>) {
+function code2sen(
+	code: CodeItem[],
+	map: Map<string, string[]>,
+	wordFeq?: Map<string, number>,
+) {
 	if (code.length === 0) return [];
 
 	const l: SenItem[] = [];
 	const { start, end } = codesIndex(code);
+
+	function getW(c: string) {
+		if (!map.has(c)) return;
+		const l = map.get(c);
+		if (!l) return;
+		const x: { t: string; w: number }[] = [];
+		for (const i of l) {
+			const f = wordFeq?.get(i);
+			x.push({ t: i, w: f ?? 0 });
+		}
+		return x.toSorted((a, b) => b.w - a.w).map((i) => i.t);
+	}
 
 	function s(code: CodeItem[], str = "") {
 		if (code.length === 0) {
@@ -15,15 +31,15 @@ function code2sen(code: CodeItem[], map: Map<string, string[]>) {
 		}
 		for (let i = code.length; i > 0; i--) {
 			const c = Codes2DicKey(code.slice(0, i));
-			if (map.has(c)) {
-				const v = map.get(c)?.at(0);
-				if (v) s(code.slice(i), str + v);
+			const v = getW(c)?.at(0);
+			if (v) {
+				s(code.slice(i), str + v);
 				break;
 			}
 		}
 	}
 
-	const _g = map.get(Codes2DicKey(code));
+	const _g = getW(Codes2DicKey(code));
 	if (_g)
 		l.push(
 			..._g.map((i) => ({
@@ -39,10 +55,8 @@ function code2sen(code: CodeItem[], map: Map<string, string[]>) {
 		for (let i = firstWordLength; i > 0; i--) {
 			const codeSlice = code.slice(0, i);
 			const c = Codes2DicKey(codeSlice);
-			if (map.has(c)) {
-				for (const v of map.get(c) || [])
-					l.push({ txt: v, ...codesIndex(codeSlice) });
-			}
+			for (const v of getW(c) || [])
+				l.push({ txt: v, ...codesIndex(codeSlice) });
 		}
 	}
 

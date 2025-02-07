@@ -1,5 +1,5 @@
 import { xinit } from "./load.ts";
-import { inputTrans } from "../src/main.ts";
+import { cleanYhData, inputTrans } from "../src/main.ts";
 import type { SenItem } from "../src/sen.ts";
 import { pinyin } from "npm:pinyin-pro";
 
@@ -16,7 +16,12 @@ function splitTxt(l: string[], py: string[], op?: { firstBreak: boolean }) {
 	let ideal = 0;
 	let n = 0;
 
-	function select(r: SenItem[], txt: string, py: string) {
+	function select(
+		r: SenItem[],
+		txt: string,
+		py: string,
+		s: (x: number) => void,
+	) {
 		const dis = r.findIndex((i) => i.txt === txt);
 		if (dis === -1) {
 			const fi = r.findIndex((i) => txt.startsWith(i.txt));
@@ -27,9 +32,10 @@ function splitTxt(l: string[], py: string[], op?: { firstBreak: boolean }) {
 			}
 			count += 1 + fi;
 			const npy = py.slice(f.end);
-			const nout = inputTrans(npy).all;
-			select(nout, txt.slice(f.txt.length), npy);
+			const nout = inputTrans(npy);
+			select(nout.all, txt.slice(f.txt.length), npy, nout.select);
 		} else {
+			s(dis);
 			count += dis + 1; // 假设只有一个候选，需要不断翻页，或者假设对比字的精力与击键相同
 		}
 	}
@@ -46,21 +52,26 @@ function splitTxt(l: string[], py: string[], op?: { firstBreak: boolean }) {
 		}
 		let r: SenItem[] = [];
 		let pyLen = p.length;
+		let s: (x: number) => void = () => {};
 		for (let j = op?.firstBreak ? 0 : p.length; j <= p.length; j++) {
-			const _r = inputTrans(p.slice(0, j)).all;
-			if (_r.at(0)?.txt === i || j === p.length) {
-				r = _r;
+			const _r = inputTrans(p.slice(0, j));
+			if (_r.all.at(0)?.txt === i || j === p.length) {
+				r = _r.all;
 				pyLen = j;
+				s = _r.select;
 				break;
 			}
 		}
 		count += pyLen;
 		ideal += p.length;
 
-		select(r, i, p);
+		select(r, i, p, s);
 
 		ideal += 1;
 	}
+
+	cleanYhData();
+
 	return { count, ideal, length: l.length };
 }
 
