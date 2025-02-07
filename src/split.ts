@@ -1,4 +1,4 @@
-type CodeItem = { code: string; start: number; end: number };
+type CodeItem = { code: string[]; start: number; end: number };
 
 function main(
 	keys: string,
@@ -9,66 +9,54 @@ function main(
 		codeExt?: Record<string, string>;
 	},
 ) {
-	const l: CodeItem[] = [];
-	const ak = op.alCodes
-		.filter((i) => keys.includes(i))
-		.toSorted((a, b) => b.length - a.length);
+	const l: { c: CodeItem[]; w: number }[] = [];
+	const ak = op.alCodes.filter((i) => keys.includes(i));
+	const codeExt = op.codeExt;
 
-	function s(c: string, start: number) {
-		if (c.length === 0) return;
-		for (const i of ak) {
-			if (c.startsWith(i)) {
-				l.push({ code: i, start, end: start + i.length });
-				s(c.slice(i.length), start + i.length);
-				return;
+	function xs() {
+		const nl: CodeItem[] = [];
+		let w = 0;
+		out: for (let x = 0; x < keys.length; x++) {
+			for (const [n, i] of ak.entries()) {
+				const k = keys.slice(x, x + i.length);
+				if (k === i) {
+					nl.push({ code: [i], start: x, end: x + i.length });
+					w += n;
+					x += i.length - 1;
+					continue out;
+				}
 			}
 		}
+		return { c: nl, w };
 	}
 
-	s(keys, 0);
-	const f = op.codeExt ? extCode(l, op.codeExt) : [l];
-	const ff = f.filter((i) => i.every((x) => op.alCodes.includes(x.code)));
-	return ff;
-}
-function generateCombinations<T>(arr: T[]) {
-	const result: T[][] = [];
-	const n = arr.length;
-	const total = 1 << n; // 计算2的n次方
+	l.push(xs());
 
-	for (let i = 0; i < total; i++) {
-		const subset = [];
-		for (let j = 0; j < n; j++) {
-			// 检查第j位是否为1，决定是否包含对应元素
-			if (i & (1 << j)) {
-				subset.push(arr[j]);
+	for (const i of l) {
+		if (codeExt)
+			for (const x of i.c) {
+				x.code = extCode(x.code, codeExt);
 			}
-		}
-		result.push(subset);
 	}
-
-	return result;
+	const ff = l
+		.filter((i) =>
+			i.c.every((x) => x.code.every((x) => op.alCodes.includes(x))),
+		)
+		.toSorted((a, b) => a.c.length - b.c.length || b.w - a.w);
+	return ff.map((i) => i.c);
 }
-function extCode(code: CodeItem[], codeExt: Record<string, string>) {
-	const f: CodeItem[][] = [];
-	const k: [number, string][] = [];
-	all: for (const [n, i] of code.entries()) {
+function extCode(code: string[], codeExt: Record<string, string>) {
+	const k: string[] = [];
+	for (const i of code) {
+		k.push(i);
 		for (const r in codeExt) {
 			const re = new RegExp(r);
-			if (re.test(i.code)) {
-				if (k.length < 3) k.push([n, r]);
-				else break all;
+			if (re.test(i)) {
+				k.push(i.replace(re, codeExt[r]));
 			}
 		}
 	}
-	const x = generateCombinations(k);
-	for (const _i of x) {
-		const l = structuredClone(code);
-		for (const i of _i) {
-			l[i[0]].code = l[i[0]].code.replace(new RegExp(i[1]), codeExt[i[1]]);
-		}
-		f.push(l);
-	}
-	return f;
+	return k;
 }
 
 export { main as split, type CodeItem };

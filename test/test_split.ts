@@ -2,8 +2,8 @@ import { xinit } from "./load.ts";
 import { split } from "../src/split.ts";
 import { assertEquals } from "jsr:@std/assert";
 
-const { baseMap, codeExt } = xinit();
-const someKeys = Array.from(baseMap.keys() ?? []);
+const { ziPinYin, codeExt } = xinit();
+const someKeys = ziPinYin;
 
 const pyj = ",";
 

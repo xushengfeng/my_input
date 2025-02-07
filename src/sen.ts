@@ -3,12 +3,13 @@ import type { CodeItem } from "./split.ts";
 type SenItem = { txt: string; start: number; end: number; words?: string[] };
 
 function code2sen(
-	codes: CodeItem[][],
+	_codes: CodeItem[][],
 	map: Map<string, string[]>,
 	wordFeq?: Map<string, number>,
 ) {
-	if (codes.length === 0) return [];
+	if (_codes.length === 0) return [];
 
+	const codes = _codes.slice(0, 4);
 	const l: SenItem[] = [];
 	const { start, end } = codesIndex(codes.at(0) ?? []);
 
@@ -34,18 +35,21 @@ function code2sen(
 			l.push({ txt: str.join(""), start, end, words: str });
 			return;
 		}
-		for (let i = code.length; i > 0; i--) {
-			const c = Codes2DicKey(code.slice(0, i));
-			const v = getW(c)?.at(0);
-			if (v) {
-				str.push(v.t);
-				s(code.slice(i), str);
-				break;
+		ll: for (let i = code.length; i > 0; i--) {
+			for (const c of posiDicKey(code.slice(0, i))) {
+				const v = getW(c)?.at(0);
+				if (v) {
+					str.push(v.t);
+					s(code.slice(i), str);
+					break ll;
+				}
 			}
 		}
 	}
 
-	const _g = codes.flatMap((code) => getW(Codes2DicKey(code)) ?? []);
+	const _g = codes.flatMap((code) =>
+		posiDicKey(code).flatMap((c) => getW(c) ?? []),
+	);
 	l.push(
 		...sort(_g).map((i) => ({
 			txt: i.t,
@@ -63,11 +67,12 @@ function code2sen(
 			const firstWordLength = Math.min(3, code.length - 1); // -1排除_g
 			for (let i = firstWordLength; i > 0; i--) {
 				const codeSlice = code.slice(0, i);
-				const c = Codes2DicKey(codeSlice);
-				if (pySet.has(c)) continue; // c唯一表示code和i唯一
-				pySet.add(c);
-				for (const v of getW(c) || [])
-					xl.push({ txt: v.t, w: v.w, ...codesIndex(codeSlice) });
+				for (const c of posiDicKey(codeSlice)) {
+					if (pySet.has(c)) continue; // c唯一表示code和i唯一
+					pySet.add(c);
+					for (const v of getW(c) || [])
+						xl.push({ txt: v.t, w: v.w, ...codesIndex(codeSlice) });
+				}
 			}
 		}
 		for (const i of xl.toSorted((a, b) => b.w - a.w)) {
@@ -78,8 +83,36 @@ function code2sen(
 	return l;
 }
 
-function Codes2DicKey(code: CodeItem[]) {
-	return code.map((i) => i.code).join(" ");
+function Codes2DicKey(code: string[]) {
+	return code.join(" ");
+}
+
+function posiA(l: string[][]) {
+	if (l.every((i) => i.length === 1)) return [l.map((i) => i[0])];
+	// todo 性能
+	const x: string[][] = [];
+	function s(_l: string[], _i: number) {
+		const posi = l.at(_i);
+		if (!posi) {
+			x.push(_l);
+			return;
+		}
+		for (const i of posi) {
+			const nl = structuredClone(_l);
+			nl.push(i);
+			s(nl, _i + 1);
+		}
+	}
+	s([], 0);
+	return x;
+}
+
+function posiDicKey(code: CodeItem[]) {
+	// todo 限制
+	// todo 权重
+	const l = code.map((i) => i.code);
+	const x = posiA(l);
+	return x.map((i) => Codes2DicKey(i));
 }
 
 function codesIndex(code: CodeItem[]) {

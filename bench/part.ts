@@ -3,8 +3,8 @@ import { split } from "../src/split.ts";
 import { code2sen } from "../src/sen.ts";
 import { xinit } from "../test/load.ts";
 
-const { baseMap, allMap } = xinit();
-const someKeys = Array.from(baseMap.keys() ?? []);
+const { ziPinYin, allMap } = xinit();
+const someKeys = ziPinYin;
 
 const s = Deno.readTextFileSync("test/txt/百年孤独.txt");
 const segS = new Intl.Segmenter("zh-HANS", { granularity: "sentence" });
