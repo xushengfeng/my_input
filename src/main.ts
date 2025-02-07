@@ -56,16 +56,13 @@ function main(keys: string) {
 	const codes = split(keys, {
 		alCodes: someKeys,
 		alKeys: someKeys,
-		codeExt,
+		// codeExt,
 		keyMapCode,
 	});
 	// console.log(codes);
 
 	// codes -> words
-	const fl: SenItem[] = [];
-	for (const i of codes) {
-		fl.push(...code2sen(i, allMap, yhXc)); // todo 这里交错了 去重
-	}
+	const fl: SenItem[] = code2sen(codes, allMap, yhXc);
 
 	// words -> words
 	return {

@@ -48,3 +48,14 @@ Deno.test({
 		console.log(l, l.length);
 	},
 });
+
+Deno.test({
+	name: "歧义拼音",
+	fn() {
+		const l = split("sunahuo", {
+			alCodes: someKeys,
+			codeExt,
+		});
+		console.log(l, l.length);
+	},
+});

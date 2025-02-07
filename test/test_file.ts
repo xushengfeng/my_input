@@ -33,18 +33,19 @@ function splitTxt(
 		if (dis === -1) {
 			const fi = r.findIndex((i) => txt.startsWith(i.txt));
 			const f = r[fi];
+			senL.push({ s: txt, r: r.map((i) => i.txt), i: fi });
 			if (!f) {
 				count += txt.length * 9; // uincode
 				return;
 			}
 			s(fi);
-			senL.push({ s: txt, r: r.map((i) => i.txt), i: fi });
 			count += 1 + fi;
 			const npy = py.slice(f.end);
 			const nout = inputTrans(npy);
 			select(nout.all, txt.slice(f.txt.length), npy, nout.select);
 		} else {
 			s(dis);
+			senL.push({ s: txt, r: r.map((i) => i.txt), i: dis });
 			count += dis + 1; // 假设只有一个候选，需要不断翻页，或者假设对比字的精力与击键相同
 		}
 	}
