@@ -1,5 +1,5 @@
 import { xinit } from "./load.ts";
-import { cleanYhData, inputTrans } from "../src/main.ts";
+import { cleanYhData, inputTrans, yhXc } from "../src/main.ts";
 import type { SenItem } from "../src/sen.ts";
 import { pinyin } from "npm:pinyin-pro";
 
@@ -10,6 +10,8 @@ const segG = new Intl.Segmenter("zh-HANS", { granularity: "grapheme" });
 const segW = new Intl.Segmenter("zh-HANS", { granularity: "word" });
 
 xinit();
+
+yhXc; // 用于调试
 
 function splitTxt(l: string[], py: string[], op?: { firstBreak: boolean }) {
 	let count = 0;
@@ -30,6 +32,7 @@ function splitTxt(l: string[], py: string[], op?: { firstBreak: boolean }) {
 				count += txt.length * 9; // uincode
 				return;
 			}
+			s(fi);
 			count += 1 + fi;
 			const npy = py.slice(f.end);
 			const nout = inputTrans(npy);

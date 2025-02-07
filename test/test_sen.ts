@@ -58,3 +58,19 @@ Deno.test({
 		console.log(s);
 	},
 });
+
+Deno.test({
+	name: "组句后面的优先词",
+	fn() {
+		const s = code2sen(
+			[
+				{ code: "de", start: 0, end: 2 },
+				{ code: "ce", start: 2, end: 4 },
+				{ code: "shi", start: 4, end: 7 },
+			],
+			allMap,
+			new Map([["得", 1]]),
+		);
+		console.log(s);
+	},
+});

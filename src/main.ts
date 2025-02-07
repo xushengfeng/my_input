@@ -74,18 +74,24 @@ function main(keys: string) {
 		select(i: number) {
 			const data = fl.at(i);
 			if (!data) return;
-			yhXc.delete(data.txt);
-			yhXc.set(data.txt, wordFeqI);
-			wordFeqI++;
-			if (lastTxt) {
-				const l = yhXcGx.get(lastTxt);
-				if (l) l.add(data.txt);
-				else yhXcGx.set(lastTxt, new Set([data.txt]));
+			for (const i of data.words ?? [data.txt]) {
+				addWord(i);
 			}
-			lastTxt = data.txt;
 			return data;
 		},
 	};
+}
+
+function addWord(txt: string) {
+	yhXc.delete(txt);
+	yhXc.set(txt, wordFeqI);
+	wordFeqI++;
+	if (lastTxt) {
+		const l = yhXcGx.get(lastTxt);
+		if (l) l.add(txt);
+		else yhXcGx.set(lastTxt, new Set([txt]));
+	}
+	lastTxt = txt;
 }
 
 function exportYhData() {
@@ -102,4 +108,4 @@ function cleanYhData() {
 	wordFeqI = 0;
 }
 
-export { main as inputTrans, init, exportYhData, cleanYhData };
+export { main as inputTrans, init, exportYhData, cleanYhData, yhXc };
