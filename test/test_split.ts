@@ -14,7 +14,7 @@ Deno.test({
 			const j = i.join("");
 			const jj = i.join(pyj);
 			const x = split(j, { alCodes: someKeys });
-			const t = x.find((i) => i.map((i) => i.code).join(pyj) === jj);
+			const t = x.find((i) => i.map((i) => i.code[0]).join(pyj) === jj);
 			assertEquals(Boolean(t), true);
 			if (!t) return;
 			for (const [n, v] of t.entries()) {
@@ -29,12 +29,13 @@ Deno.test({
 	fn() {
 		const l = split("nihaosijieshang", { alCodes: someKeys, codeExt });
 		console.log(l);
-		assertEquals(
-			l
-				.map((i) => i.map((i) => i.code).join(pyj))
-				.includes(["ni", "hao", "shi", "jie", "shang"].join(pyj)),
-			true,
-		);
+		const x = l.find((x) => {
+			for (const [i, v] of ["ni", "hao", "shi", "jie", "shang"].entries()) {
+				if (!x[i].code.includes(v)) return false;
+			}
+			return true;
+		});
+		assertEquals(Boolean(x), true);
 	},
 });
 
@@ -52,7 +53,7 @@ Deno.test({
 Deno.test({
 	name: "歧义拼音",
 	fn() {
-		const l = split("sunahuo", {
+		const l = split("sunahuos", {
 			alCodes: someKeys,
 			codeExt,
 		});
