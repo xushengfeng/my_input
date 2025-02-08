@@ -13,6 +13,10 @@ xinit();
 
 yhXc; // 用于调试
 
+function getPinyin(txt: string) {
+	return pinyin(txt, { toneType: "none", type: "all", v: true });
+}
+
 function splitTxt(
 	l: string[],
 	py: string[],
@@ -82,23 +86,19 @@ function splitTxt(
 		ideal += 1;
 	}
 
-	cleanYhData();
-
 	return { count, ideal, length: l.length };
 }
 
 function testX() {
 	const txt = "天啊，这个也太厉害了吧";
 
-	const py = pinyin(txt, { toneType: "none", type: "all" }).map(
-		(i) => i.pinyin,
-	);
+	const py = getPinyin(txt).map((i) => i.pinyin);
 	const x = splitTxt([txt], py);
 	console.log(x);
 }
 
-function testFile(txt: string) {
-	const _py = pinyin(txt, { toneType: "none", type: "all" }).map((i) => ({
+function getPinYinList(txt: string) {
+	const _py = getPinyin(txt).map((i) => ({
 		py: i.pinyin,
 		t: i.origin,
 	}));
@@ -118,26 +118,7 @@ function testFile(txt: string) {
 		lastType = i.py ? "w" : "n";
 	}
 
-	const zi = splitTxt(
-		s.flatMap((t) => Array.from(segG.segment(t)).map((i) => i.segment)),
-		py,
-	);
-	const ci = splitTxt(
-		s.flatMap((t) => Array.from(segW.segment(t)).map((i) => i.segment)),
-		py,
-	);
-	const cib = splitTxt(
-		s.flatMap((t) => Array.from(segW.segment(t)).map((i) => i.segment)),
-		py,
-		{ firstBreak: true },
-	);
-	const jz = splitTxt(
-		s,
-		py,
-		// { firstBreak: true },
-		{ devB: true },
-	);
-	return { zi, ci, cib, jz };
+	return { s, py };
 }
 
 function item(zi: ReturnType<typeof splitTxt>) {
@@ -155,34 +136,53 @@ for await (const dirEntry of walk(path.join(dirName, "txt"))) {
 		const txt = Deno.readTextFileSync(dirEntry.path);
 		const c = 5000;
 		const max = Math.min(100_0000, txt.length);
-		const zi: ReturnType<typeof splitTxt> = { count: 0, ideal: 0, length: 0 };
-		const ci: ReturnType<typeof splitTxt> = { count: 0, ideal: 0, length: 0 };
-		const cib: ReturnType<typeof splitTxt> = { count: 0, ideal: 0, length: 0 };
-		const jz: ReturnType<typeof splitTxt> = { count: 0, ideal: 0, length: 0 };
-		for (let i = 0; i < max; i += c) {
-			Deno.stdout.writeSync(new TextEncoder().encode(`\r${i / max}`));
-			const x = testFile(txt.slice(i, i + c));
-			for (const i in x.zi) {
-				// @ts-ignore:
-				zi[i] += x.zi[i];
+		const l: {
+			name: string;
+			l: ReturnType<typeof splitTxt>;
+			f: (s: string[]) => string[];
+			op?: { firstBreak?: boolean; devB?: boolean };
+		}[] = [
+			{
+				name: "字",
+				l: { count: 0, ideal: 0, length: 0 },
+				f: (s) =>
+					s.flatMap((t) => Array.from(segG.segment(t)).map((i) => i.segment)),
+			},
+			{
+				name: "词",
+				l: { count: 0, ideal: 0, length: 0 },
+				f: (s) =>
+					s.flatMap((t) => Array.from(segW.segment(t)).map((i) => i.segment)),
+			},
+			{
+				name: "词（提前返回）",
+				l: { count: 0, ideal: 0, length: 0 },
+				f: (s) =>
+					s.flatMap((t) => Array.from(segW.segment(t)).map((i) => i.segment)),
+				op: { firstBreak: true },
+			},
+			{ name: "句", l: { count: 0, ideal: 0, length: 0 }, f: (s) => s },
+		];
+
+		console.log(max);
+
+		for (const [mi, n] of l.entries()) {
+			cleanYhData();
+			for (let i = 0; i < max; i += c) {
+				Deno.stdout.writeSync(
+					new TextEncoder().encode(
+						`\r${(i / max).toString().padEnd(20, "0")}  ${mi / l.length}`,
+					),
+				);
+				const v = getPinYinList(txt.slice(i, i + c)); // 我们必须想象拼音库是快的
+				const x = splitTxt(n.f(v.s), v.py);
+				for (const i in x) {
+					// @ts-ignore:
+					n.l[i] += x[i];
+				}
 			}
-			for (const i in x.ci) {
-				// @ts-ignore:
-				ci[i] += x.ci[i];
-			}
-			for (const i in x.cib) {
-				// @ts-ignore:
-				cib[i] += x.cib[i];
-			}
-			for (const i in x.jz) {
-				// @ts-ignore:
-				jz[i] += x.jz[i];
-			}
+			console.log("\n");
+			console.log(n.name, item(n.l));
 		}
-		console.log("\n");
-		console.table([
-			[dirEntry.name, "字", "词", "词（提前返回）", "句子"],
-			[max, item(zi), item(ci), item(cib), item(jz)],
-		]);
 	}
 }
