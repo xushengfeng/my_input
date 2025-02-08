@@ -121,8 +121,8 @@ function getPinYinList(txt: string) {
 	return { s, py };
 }
 
-function item(zi: ReturnType<typeof splitTxt>) {
-	return `${zi.count} ${(zi.count - zi.ideal) / zi.length}`;
+function item(zi: ReturnType<typeof splitTxt>, all: number) {
+	return `${zi.count}\n  ${(zi.count - zi.ideal) / all}\n`;
 }
 
 testX();
@@ -182,7 +182,7 @@ for await (const dirEntry of walk(path.join(dirName, "txt"))) {
 				}
 			}
 			console.log("\n");
-			console.log(n.name, item(n.l));
+			console.log(n.name, item(n.l, max));
 		}
 	}
 }

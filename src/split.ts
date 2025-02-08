@@ -1,4 +1,9 @@
-type CodeItem = { code: string[]; start: number; end: number };
+type CodeItem = {
+	code: string[];
+	start: number;
+	end: number;
+	unformal?: true;
+};
 
 function main(
 	keys: string,
@@ -7,6 +12,7 @@ function main(
 		alCodes: string[];
 		keyMapCode?: Record<string, string>;
 		codeExt?: Record<string, string>;
+		partKeys?: Map<string, string[]>;
 	},
 ) {
 	const l: { c: CodeItem[]; w: number }[] = [];
@@ -41,9 +47,14 @@ function main(
 			if (!l) {
 				const tt = tasks.filter((i) => i.lastI <= x);
 				for (const t of tt) {
-					t.c.push({ code: [keys.slice(x, x + 1)], start: x, end: x + 1 });
+					t.c.push({
+						code: [keys.slice(x, x + 1)],
+						start: x,
+						end: x + 1,
+						unformal: true,
+					});
 					t.lastI = x + 1;
-				} // todo 简拼
+				}
 				continue;
 			}
 		}
@@ -74,20 +85,35 @@ function main(
 		}
 		t.w = w;
 	}
+	if (op.partKeys)
+		for (const t of tasks) {
+			const lUf = t.c.findLastIndex((i) => !i.unformal) + 1;
+			if (lUf === t.c.length) continue;
+			const c = t.c.slice(lUf);
+			const x = op.partKeys.get(c.map((i) => i.code).join(""));
+			if (!x) continue;
+			t.c.splice(lUf, c.length, {
+				code: x,
+				start: c[0].start,
+				end: c.at(-1)?.end ?? 0,
+			});
+		}
 
 	for (const t of tasks) {
+		// todo 可以考虑拼音频率
 		l.push({ c: t.c, w: t.w });
 	}
 
 	for (const i of l) {
 		if (codeExt)
 			for (const x of i.c) {
-				x.code = extCode(x.code, codeExt);
+				if (!x.unformal) x.code = extCode(x.code, codeExt);
 			}
 	}
 	const ff = l.toSorted((a, b) => a.c.length - b.c.length || b.w - a.w);
 	return ff.map((i) => i.c);
 }
+
 function extCode(code: string[], codeExt: Record<string, string>) {
 	const k: string[] = [];
 	for (const i of code) {

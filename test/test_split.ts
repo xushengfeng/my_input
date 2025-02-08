@@ -2,7 +2,7 @@ import { xinit } from "./load.ts";
 import { split } from "../src/split.ts";
 import { assertEquals } from "jsr:@std/assert";
 
-const { ziPinYin, codeExt } = xinit();
+const { ziPinYin, codeExt, szmMap } = xinit();
 const someKeys = ziPinYin;
 
 const pyj = ",";
@@ -58,5 +58,23 @@ Deno.test({
 			codeExt,
 		});
 		console.log(l, l.length);
+	},
+});
+
+Deno.test({
+	name: "补全",
+	fn() {
+		const l = split("sh", {
+			alCodes: someKeys,
+			partKeys: szmMap,
+		});
+		assertEquals((l[0].at(-1)?.code.length ?? 0) > 1, true);
+		console.log(l, l.length);
+		const l2 = split("sunahuos", {
+			alCodes: someKeys,
+			partKeys: szmMap,
+		});
+		assertEquals((l2[0].at(-1)?.code.length ?? 0) > 1, true);
+		console.log(l2, l2.length);
 	},
 });

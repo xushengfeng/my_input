@@ -5,6 +5,7 @@ import { code2sen, type SenItem } from "./sen.ts";
 let baseMap: ReturnType<typeof loadDic>;
 let groupMap: ReturnType<typeof loadDic>;
 const allMap = new Map<string, string[]>();
+const szmMap = new Map<string, string[]>(); // 首字母简拼
 let ziPinYin: string[] = [];
 let keyMapCode: Record<string, string> = {};
 let codeExt: Record<string, string> = {};
@@ -37,6 +38,20 @@ function init(op: {
 			k,
 			v.toSorted((a, b) => b.w - a.w).map((i) => i.t),
 		);
+	for (const k of baseMap.keys()) {
+		for (let i = 0; i < k.length; i++) {
+			const nk = k.slice(0, i + 1);
+			const vv = szmMap.get(nk) ?? [];
+			vv.push(k);
+			szmMap.set(nk, vv);
+		}
+	}
+	for (const [k, v] of szmMap) {
+		const nl = v.toSorted(
+			(a, b) => sumPyW(baseMap.get(b) ?? []) - sumPyW(baseMap.get(a) ?? []),
+		);
+		szmMap.set(k, nl);
+	}
 	for (const [k, v] of groupMap.entries())
 		allMap.set(
 			k,
@@ -57,24 +72,24 @@ function init(op: {
 		"^zh(?=[aeiou])": "z",
 		"^z(?=[aeiou])": "zh",
 	};
-	return { baseMap, groupMap, allMap, ziPinYin, keyMapCode, codeExt };
+	return { baseMap, groupMap, allMap, szmMap, ziPinYin, keyMapCode, codeExt };
 }
 
 function main(keys: string) {
 	const someKeys = ziPinYin;
 	// keys -> codes
 	// todo双拼
-	// todo声母简拼
 	const codes = split(keys, {
 		alCodes: someKeys,
 		alKeys: someKeys,
 		// codeExt,
 		keyMapCode,
+		partKeys: szmMap,
 	});
 	// console.log(codes);
 
 	// codes -> words
-	const fl: SenItem[] = code2sen(codes, allMap, yhXc);
+	const fl: SenItem[] = code2sen(codes, allMap, { wordFeq: yhXc });
 
 	// words -> words
 	return {

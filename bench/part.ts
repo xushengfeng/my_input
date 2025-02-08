@@ -37,6 +37,6 @@ Deno.bench("sen", (t) => {
 	const py = randomPy();
 	const codes = split(py, { alCodes: someKeys, alKeys: someKeys });
 	t.start();
-	code2sen(codes, allMap, wf);
+	code2sen(codes, allMap, { wordFeq: wf });
 	t.end();
 });

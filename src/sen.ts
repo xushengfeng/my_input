@@ -5,7 +5,9 @@ type SenItem = { txt: string; start: number; end: number; words?: string[] };
 function code2sen(
 	_codes: CodeItem[][],
 	map: Map<string, string[]>,
-	wordFeq?: Map<string, number>,
+	op?: {
+		wordFeq?: Map<string, number>;
+	},
 ) {
 	if (_codes.length === 0) return [];
 
@@ -18,12 +20,11 @@ function code2sen(
 	}
 
 	function getW(c: string) {
-		if (!map.has(c)) return;
 		const l = map.get(c);
 		if (!l) return;
 		const x: { t: string; w: number }[] = [];
 		for (const i of l) {
-			const f = wordFeq?.get(i);
+			const f = op?.wordFeq?.get(i);
 			x.push({ t: i, w: f ?? 0 });
 		}
 		return sort(x);
@@ -58,9 +59,9 @@ function code2sen(
 		})),
 	);
 
-	const needLong = codes.find((code) => code.length > 1);
-	if (needLong) {
-		s(needLong, []);
+	const needLongI = codes.findIndex((code) => code.length > 1);
+	if (needLongI > -1) {
+		if (needLongI === 0) s(codes[needLongI], []);
 		const xl: { txt: string; w: number; start: number; end: number }[] = [];
 		const pySet = new Set<string>();
 		for (const code of codes) {
