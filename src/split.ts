@@ -1,5 +1,7 @@
+import type { Pinyin } from "./main.ts";
+
 type CodeItem = {
-	code: string[];
+	code: Pinyin[];
 	start: number;
 	end: number;
 	unformal?: true;
@@ -9,15 +11,15 @@ function main(
 	keys: string,
 	op: {
 		alKeys?: string[];
-		alCodes: string[];
+		alCodes: Pinyin[];
 		keyMapCode?: Record<string, string>;
 		codeExt?: Record<string, string>;
-		partKeys?: Map<string, string[]>;
+		partKeys?: Map<string, Pinyin[]>;
 	},
 ) {
 	const l: { c: CodeItem[]; w: number }[] = [];
-	const posi = new Map<number, string[]>();
-	const pyW = new Map<string, number>();
+	const posi = new Map<number, Pinyin[]>();
+	const pyW = new Map<Pinyin, number>();
 	const tasks: { c: CodeItem[]; w: number; lastI: number }[] = [
 		{ c: [], lastI: 0, w: 0 },
 	];
@@ -48,7 +50,7 @@ function main(
 				const tt = tasks.filter((i) => i.lastI <= x);
 				for (const t of tt) {
 					t.c.push({
-						code: [keys.slice(x, x + 1)],
+						code: [keys.slice(x, x + 1) as Pinyin],
 						start: x,
 						end: x + 1,
 						unformal: true,
@@ -114,14 +116,14 @@ function main(
 	return ff.map((i) => i.c);
 }
 
-function extCode(code: string[], codeExt: Record<string, string>) {
-	const k: string[] = [];
+function extCode(code: Pinyin[], codeExt: Record<string, string>) {
+	const k: Pinyin[] = [];
 	for (const i of code) {
 		k.push(i);
 		for (const r in codeExt) {
 			const re = new RegExp(r);
 			if (re.test(i)) {
-				k.push(i.replace(re, codeExt[r]));
+				k.push(i.replace(re, codeExt[r]) as Pinyin);
 			}
 		}
 	}

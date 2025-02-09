@@ -1,6 +1,7 @@
 import { xinit } from "./load.ts";
 import { split } from "../src/split.ts";
 import { assertEquals } from "jsr:@std/assert";
+import type { Pinyin } from "../src/main.ts";
 
 const { ziPinYin, codeExt, szmMap } = xinit();
 const someKeys = ziPinYin;
@@ -30,7 +31,9 @@ Deno.test({
 		const l = split("nihaosijieshang", { alCodes: someKeys, codeExt });
 		console.log(l);
 		const x = l.find((x) => {
-			for (const [i, v] of ["ni", "hao", "shi", "jie", "shang"].entries()) {
+			for (const [i, v] of (
+				["ni", "hao", "shi", "jie", "shang"] as Pinyin[]
+			).entries()) {
 				if (!x[i].code.includes(v)) return false;
 			}
 			return true;

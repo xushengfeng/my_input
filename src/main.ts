@@ -2,17 +2,20 @@ import { loadDic } from "./dic.ts";
 import { split } from "./split.ts";
 import { code2sen, type SenItem } from "./sen.ts";
 
+type Pinyin = string & { readonly __tag: unique symbol };
+type ZiCiJu = string & { readonly __tag: unique symbol };
+
 let baseMap: ReturnType<typeof loadDic>;
 let groupMap: ReturnType<typeof loadDic>;
-const allMap = new Map<string, string[]>();
-const szmMap = new Map<string, string[]>(); // 首字母简拼
-let ziPinYin: string[] = [];
+const allMap = new Map<Pinyin, ZiCiJu[]>();
+const szmMap = new Map<string, Pinyin[]>(); // 首字母简拼
+let ziPinYin: Pinyin[] = [];
 let keyMapCode: Record<string, string> = {};
 let codeExt: Record<string, string> = {};
 
-const yhXc = new Map<string, number>();
-const yhXcGx = new Map<string, Set<string>>();
-let lastTxt = "";
+const yhXc = new Map<ZiCiJu, number>();
+const yhXcGx = new Map<ZiCiJu, Set<ZiCiJu>>();
+let lastTxt = "" as ZiCiJu;
 let wordFeqI = 0;
 
 function sumPyW(x: { t: string; w: number }[]) {
@@ -106,7 +109,7 @@ function main(keys: string) {
 	};
 }
 
-function addWord(txt: string) {
+function addWord(txt: ZiCiJu) {
 	yhXc.delete(txt);
 	yhXc.set(txt, wordFeqI);
 	wordFeqI++;
@@ -131,5 +134,7 @@ function cleanYhData() {
 	yhXcGx.clear();
 	wordFeqI = 0;
 }
+
+export type { Pinyin, ZiCiJu };
 
 export { main as inputTrans, init, exportYhData, cleanYhData, yhXc };

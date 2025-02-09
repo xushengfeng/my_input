@@ -1,12 +1,13 @@
+import type { Pinyin, ZiCiJu } from "./main.ts";
 import type { CodeItem } from "./split.ts";
 
-type SenItem = { txt: string; start: number; end: number; words?: string[] };
+type SenItem = { txt: ZiCiJu; start: number; end: number; words?: ZiCiJu[] };
 
 function code2sen(
 	_codes: CodeItem[][],
-	map: Map<string, string[]>,
+	map: Map<Pinyin, ZiCiJu[]>,
 	op?: {
-		wordFeq?: Map<string, number>;
+		wordFeq?: Map<ZiCiJu, number>;
 	},
 ) {
 	if (_codes.length === 0) return [];
@@ -19,10 +20,10 @@ function code2sen(
 		return l.toSorted((a, b) => b.w - a.w);
 	}
 
-	function getW(c: string) {
+	function getW(c: Pinyin) {
 		const l = map.get(c);
 		if (!l) return;
-		const x: { t: string; w: number }[] = [];
+		const x: { t: ZiCiJu; w: number }[] = [];
 		for (const i of l) {
 			const f = op?.wordFeq?.get(i);
 			x.push({ t: i, w: f ?? 0 });
@@ -30,10 +31,10 @@ function code2sen(
 		return sort(x);
 	}
 
-	function s(code: CodeItem[], str: string[]) {
+	function s(code: CodeItem[], str: ZiCiJu[]) {
 		if (code.length === 0) {
 			if (str.length <= 1) return;
-			l.push({ txt: str.join(""), start, end, words: str });
+			l.push({ txt: str.join("") as ZiCiJu, start, end, words: str });
 			return;
 		}
 		ll: for (let i = code.length; i > 0; i--) {
@@ -62,7 +63,7 @@ function code2sen(
 	const needLongI = codes.findIndex((code) => code.length > 1);
 	if (needLongI > -1) {
 		if (needLongI === 0) s(codes[needLongI], []);
-		const xl: { txt: string; w: number; start: number; end: number }[] = [];
+		const xl: { txt: ZiCiJu; w: number; start: number; end: number }[] = [];
 		const pySet = new Set<string>();
 		for (const code of codes) {
 			const firstWordLength = Math.min(3, code.length - 1); // -1排除_g
@@ -84,15 +85,15 @@ function code2sen(
 	return l;
 }
 
-function Codes2DicKey(code: string[]) {
-	return code.join(" ");
+function Codes2DicKey(code: Pinyin[]) {
+	return code.join(" ") as Pinyin;
 }
 
-function posiA(l: string[][]) {
+function posiA<T>(l: T[][]) {
 	if (l.every((i) => i.length === 1)) return [l.map((i) => i[0])];
 	// todo 性能
-	const x: string[][] = [];
-	function s(_l: string[], _i: number) {
+	const x: T[][] = [];
+	function s(_l: T[], _i: number) {
 		const posi = l.at(_i);
 		if (!posi) {
 			x.push(_l);
