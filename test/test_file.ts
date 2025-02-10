@@ -6,7 +6,6 @@ import { pinyin } from "npm:pinyin-pro";
 import * as path from "jsr:@std/path";
 import { walk } from "jsr:@std/fs/walk";
 
-const segG = new Intl.Segmenter("zh-HANS", { granularity: "grapheme" });
 const segW = new Intl.Segmenter("zh-HANS", { granularity: "word" });
 
 xinit();
@@ -82,8 +81,6 @@ function splitTxt(
 		senL = [];
 
 		select(r, i, p, s);
-
-		ideal += 1;
 	}
 
 	return { count, ideal, length: l.length };
@@ -143,12 +140,6 @@ for await (const dirEntry of walk(path.join(dirName, "txt"))) {
 			op?: { firstBreak?: boolean; devB?: boolean };
 		}[] = [
 			{
-				name: "字",
-				l: { count: 0, ideal: 0, length: 0 },
-				f: (s) =>
-					s.flatMap((t) => Array.from(segG.segment(t)).map((i) => i.segment)),
-			},
-			{
 				name: "词",
 				l: { count: 0, ideal: 0, length: 0 },
 				f: (s) =>
@@ -175,7 +166,7 @@ for await (const dirEntry of walk(path.join(dirName, "txt"))) {
 					),
 				);
 				const v = getPinYinList(txt.slice(i, i + c)); // 我们必须想象拼音库是快的
-				const x = splitTxt(n.f(v.s), v.py);
+				const x = splitTxt(n.f(v.s), v.py, n.op);
 				for (const i in x) {
 					// @ts-ignore:
 					n.l[i] += x[i];
